@@ -1,59 +1,73 @@
-# Spec-Driven Development Template
+# Help Desk
 
-A project template for building applications with AI by writing specifications instead of chat prompts. Specs in `spec/` are the single source of truth — the AI reads them, writes code, verifies the result visually, and writes tests.
+A customer support help desk built with Vaadin Flow + Spring Boot. Customers create and track tickets; support agents work a prioritized queue, assign tickets, update status, and reply in a shared conversation thread.
 
-## Getting Started
+Built spec-first — every feature in [`spec/use-cases/`](spec/use-cases/) is the source of truth for what was implemented.
 
-### 1. Know where the project-wide rules live
+## A look at the app
 
-These files describe the project as a whole. They ship with sensible defaults (Vaadin + Spring Boot stack, a working design system, standard structure), so **you don't have to edit anything to get going** — you can jump straight to writing a use case.
+### Agent queue
 
-Edit them when you want to deviate from the defaults or add project-specific context.
+Open and in-progress tickets the logged-in agent is responsible for, sorted by priority (Urgent → Low) with color-coded badges. Search by ticket ID / customer name and filter by status.
 
-| File | What goes here |
-|------|----------------|
-| `spec/project-context.md` | Vision, users, scope, constraints |
-| `spec/architecture.md` | Tech stack and application structure |
-| `spec/datamodel/datamodel.md` | Entities and relationships |
-| `spec/design-system.md` | Theme, components, visual standards |
-| `CLAUDE.md` | Instructions that always apply when Claude works in this repo |
+![Agent queue](docs/images/agent-queue.png)
 
-If the AI keeps getting something wrong or makes a choice you disagree with, the fix is almost always to add or sharpen a rule in one of these files — not to repeat yourself in chat.
+### Ticket detail
 
-### 2. Define use cases
+Two-column layout with customer info, ticket metadata, and agent action panel (assign, status, priority) on the left; conversation thread with reply box on the right. Agents see the action panel; customers see a read-only view of the same thread.
 
-Features are specified as use cases in `spec/use-cases/`. Each use case is one file describing one capability (e.g. "browse movies", "buy a ticket", "admin manages screenings").
+![Ticket detail](docs/images/ticket-detail.png)
 
-The fastest way is `/new-use-case` — it interviews you for the details and writes a filled-in file in `spec/use-cases/` for you. A fresh project may have no use cases yet; just run the command to add the first one.
+### Create ticket (public)
 
-If you'd rather write it by hand, copy `spec/use-cases/use-case-template.md` to `use-case-NNN-short-name.md` and fill it in: main flow, business rules, acceptance criteria, routes.
+The customer-facing form. Title, description, and email are required; submit is disabled until they're filled in.
 
-### 3. Implement use cases one at a time
+![Create ticket](docs/images/create-ticket.png)
 
-**For most work, one command is all you need:** `/implement-use-case <name-or-number>`. It drives the whole flow — writes code, verifies the UI visually, writes tests, commits.
+## Running it
 
-Two helper skills exist for when you want to run a single step on its own:
+```bash
+./mvnw                              # dev server on :8080
+./mvnw test                         # run tests
+./mvnw clean package                # production build
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for more.
+
+### Try it
+
+- Open <http://localhost:8080/> — anonymous lands on the ticket-creation form.
+- Submit a ticket, then visit **My tickets** to track it (identified by email).
+- Log in as an agent at <http://localhost:8080/login> with `alice` / `password` (or `bob` / `password`) and work the queue.
+
+## How it's structured
+
+| Layer | Where |
+|-------|-------|
+| Domain (JPA) | `src/main/java/com/example/domain/` |
+| Repositories | `src/main/java/com/example/repository/` |
+| Services (business rules) | `src/main/java/com/example/service/` |
+| Security | `src/main/java/com/example/security/` |
+| Vaadin Flow views | `src/main/java/com/example/ui/` |
+| Seed data | `src/main/java/com/example/init/DataInitializer.java` |
+
+The architecture, data model, design system, and feature specs all live in [`spec/`](spec/). See [CLAUDE.md](CLAUDE.md) for the conventions that always apply.
+
+## Spec-driven workflow
+
+This repo follows a spec-first workflow: features are defined as use cases under [`spec/use-cases/`](spec/use-cases/), then implemented one at a time. The original template README explained the workflow in detail — the key commands are:
 
 | Skill | Purpose |
 |-------|---------|
-| `/implement-use-case <name-or-number>` | Implements a use case end-to-end: writes code, runs visual verification, writes tests, commits |
-| `/visual-verification` | Runs Playwright against the app and checks the UI against the use case |
-| `/use-case-tests` | Writes and runs the automated tests for a use case |
+| `/new-use-case` | Interview-style creation of a new use case file |
+| `/implement-use-case <name-or-number>` | End-to-end: code, visual verification, tests, commit |
+| `/visual-verification` | Run Playwright against the app and check the UI |
+| `/use-case-tests` | Write and run automated tests |
 
-`/implement-use-case` calls the other two as part of its flow, so you rarely need to invoke them directly.
-
-## A Typical Run-Through
-
-Say you have three use cases: `use-case-001-browse-movies.md`, `use-case-002-buy-ticket.md`, `use-case-003-admin-screenings.md`.
-
-1. **(Optional) Tweak the defaults.** Skim `spec/project-context.md` and `spec/architecture.md`. Fill in any `[bracketed placeholders]` you care about — or leave them; the defaults work.
-2. **Implement the first use case.** Run `/implement-use-case 001`. When it finishes you have a running application with browsing working, screenshots verified, tests passing, and a commit on the branch.
-3. **Review and adjust.** Run the app (`./mvnw` — see [DEVELOPMENT.md](DEVELOPMENT.md)), click through it. If something is off, update the use case file (or a project-wide rule) and re-run `/implement-use-case 001`.
-4. **Move on to the next use case.** Run `/implement-use-case 002`, then `/implement-use-case 003`. Don't move on until the previous one is fully done — code, visual check, tests, commit.
-
-After all three you have an application that does the three things you specified, with tests covering each, and a spec folder that explains why everything looks the way it does.
+If the AI gets something wrong, the fix is usually to sharpen a rule in `spec/architecture.md`, `spec/design-system.md`, or the use case itself — not to repeat yourself in chat.
 
 ## More
 
 - [`spec/README.md`](spec/README.md) — full spec structure and workflow
 - [DEVELOPMENT.md](DEVELOPMENT.md) — build, run, and test commands
+- [CLAUDE.md](CLAUDE.md) — repo conventions (Aura theme, security, architecture rules)
