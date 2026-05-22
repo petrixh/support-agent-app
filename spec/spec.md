@@ -1,0 +1,1 @@
+A customer support help desk with ticket management, priority queues, agent assignment, and customer communication history.
